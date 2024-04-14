@@ -1,0 +1,80 @@
+services:
+  web:
+    image: wger/server:${SOFTWARE_VERSION_TAG}
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - cache
+    volumes:
+      - ./storage/static:/home/wger/static
+      - ./storage/media:/home/wger/media
+    expose:
+      - 8000
+
+  nginx:
+    image: nginx:stable
+    restart: always
+    depends_on:
+      - web
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./storage/static:/wger/static:ro
+      - ./storage/media:/wger/media:ro
+    ports:
+      - "172.17.0.1:31681:80"
+
+  db:
+    image: elestio/postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=wger
+    volumes:
+      - ./storage/postgres-data:/var/lib/postgresql/data/
+    ports:
+      - 172.17.0.1:9509:5432
+
+  cache:
+    image: elestio/redis:7.0
+    restart: always
+    expose:
+      - 6379
+    volumes:
+      - ./storage/redis-data:/data
+
+  celery_worker:
+    image: wger/server:${SOFTWARE_VERSION_TAG}
+    restart: always
+    command: /start-worker
+    env_file:
+      - ./.env
+    volumes:
+      - ./storage/media:/home/wger/media
+    depends_on:
+      - web
+
+  celery_beat:
+    image: wger/server:${SOFTWARE_VERSION_TAG}
+    restart: always
+    command: /start-beat
+    volumes:
+      - ./storage/celery-beat:/home/wger/beat/
+    env_file:
+      - ./.env
+    depends_on:
+      - celery_worker
+
+  pgadmin:
+    image: elestio/pgadmin:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
+      PGADMIN_LISTEN_PORT: 8080
+    ports:
+      - "172.17.0.1:31087:8080"
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
