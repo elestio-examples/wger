@@ -13,7 +13,7 @@ Deploy Wger server with CI/CD on Elestio
 You can open Wger here:
 
     URL: https://[CI_CD_DOMAIN]/admin
-    email: [ADMIN_EMAIL]
+    email: admin
     password: [ADMIN_PASSWORD]
 
 You can open pgAdmin here:
