@@ -18,3 +18,5 @@ docker-compose up -d
 
 
 sleep 75s;
+
+echo -e "${ADMIN_PASSWORD}\n${ADMIN_PASSWORD}" | docker-compose exec -T web bash -c "python3 manage.py changepassword admin"

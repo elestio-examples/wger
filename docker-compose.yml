@@ -1,5 +1,6 @@
 services:
   web:
+    user: 0:0
     image: wger/server:${SOFTWARE_VERSION_TAG}
     restart: always
     env_file:
@@ -46,6 +47,7 @@ services:
       - ./storage/redis-data:/data
 
   celery_worker:
+    user: 0:0
     image: wger/server:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /start-worker
@@ -57,6 +59,7 @@ services:
       - web
 
   celery_beat:
+    user: 0:0
     image: wger/server:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /start-beat

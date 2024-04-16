@@ -114,6 +114,8 @@ environments:
     value: "True"
   - key: "EMAIL_USE_SSL"
     value: "False"
+  - key: "CSRF_TRUSTED_ORIGINS"
+    value: "https://[CI_CD_DOMAIN]"
 
 config:
   runTime: "dockerCompose"
