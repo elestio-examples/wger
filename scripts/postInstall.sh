@@ -13,7 +13,10 @@ docker-compose exec -T web bash -c "wger load-online-fixtures"
 # afterwards:
 docker-compose exec -T web bash -c "python3 manage.py sync-ingredients"
 
+sleep 10s;
+
 docker-compose down;
+sleep 10s;
 docker-compose up -d
 
 
