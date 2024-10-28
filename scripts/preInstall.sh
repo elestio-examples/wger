@@ -1,6 +1,11 @@
 #set env vars
 set -o allexport; source .env; set +o allexport;
 
+mkdir -p ./storage
+mkdir -p ./storage/celery-beat
+
+chmod -R 777 ./storage/celery-beat
+
 cat /opt/elestio/startPostfix.sh > post.txt
 filename="./post.txt"
 

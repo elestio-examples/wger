@@ -1,18 +1,26 @@
 services:
   web:
-    user: 0:0
+    # user: 0:0
     image: wger/server:${SOFTWARE_VERSION_TAG}
     restart: always
     env_file:
       - ./.env
     depends_on:
-      - db
-      - cache
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
     volumes:
       - ./storage/static:/home/wger/static
-      - ./storage/media:/home/wger/media
+      # - ./storage/media:/home/wger/media
     expose:
       - 8000
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8000
+      interval: 10s
+      timeout: 5s
+      start_period: 300s
+      retries: 5
 
   nginx:
     image: nginx:stable
@@ -25,6 +33,12 @@ services:
       - ./storage/media:/wger/media:ro
     ports:
       - "172.17.0.1:31681:80"
+    healthcheck:
+      test: service nginx status
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   db:
     image: elestio/postgres:15
@@ -37,6 +51,12 @@ services:
       - ./storage/postgres-data:/var/lib/postgresql/data/
     ports:
       - 172.17.0.1:9509:5432
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   cache:
     image: elestio/redis:7.0
@@ -45,9 +65,15 @@ services:
       - 6379
     volumes:
       - ./storage/redis-data:/data
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   celery_worker:
-    user: 0:0
+    # user: 0:0
     image: wger/server:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /start-worker
@@ -55,12 +81,18 @@ services:
       - ./.env
     volumes:
       - ./storage/media:/home/wger/media
-    stop_grace_period: 1s
     depends_on:
-      - web
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: celery -A wger inspect ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   celery_beat:
-    user: 0:0
+    # user: 0:0
     image: wger/server:${SOFTWARE_VERSION_TAG}
     restart: always
     command: /start-beat
@@ -69,7 +101,8 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - celery_worker
+      celery_worker:
+        condition: service_healthy
 
   pgadmin:
     image: elestio/pgadmin:latest
