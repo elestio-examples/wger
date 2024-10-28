@@ -3,8 +3,10 @@ set -o allexport; source .env; set +o allexport;
 
 mkdir -p ./storage
 mkdir -p ./storage/celery-beat
+mkdir -p ./storage/static
 
 chmod -R 777 ./storage/celery-beat
+chmod -R 777 ./storage/static
 
 cat /opt/elestio/startPostfix.sh > post.txt
 filename="./post.txt"
